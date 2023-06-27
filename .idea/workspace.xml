@@ -1,25 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4827ddc4-e1c8-4a9f-bb2d-bc360fd69e9b" name="Changes" comment="" />
+    <list default="true" id="4827ddc4-e1c8-4a9f-bb2d-bc360fd69e9b" name="Changes" comment="!!!&#10;???">
+      <change afterPath="$PROJECT_DIR$/src/Comment.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Customer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Food.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Manager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Menu.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Order.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Restaurant.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="2OQcs8YrqE3jo4vQQ3BgsBzKok5" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Uni/OOP/Calc/src/main/java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;module&quot;
+    ]
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -28,7 +64,48 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1681496453842</updated>
+      <workItem from="1681496456381" duration="786000" />
+      <workItem from="1681818204833" duration="68000" />
+      <workItem from="1685785717763" duration="3174000" />
+      <workItem from="1686051509310" duration="4684000" />
+      <workItem from="1687602597393" duration="81000" />
+      <workItem from="1687691336832" duration="59000" />
+      <workItem from="1687848242617" duration="6745000" />
     </task>
+    <task id="LOCAL-00001" summary="!!!">
+      <created>1681496531046</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1681496531046</updated>
+    </task>
+    <task id="LOCAL-00002" summary="!!!&#10;???">
+      <created>1681496597454</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1681496597454</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="!!!" />
+    <MESSAGE value="!!!&#10;???" />
+    <option name="LAST_COMMIT_MESSAGE" value="!!!&#10;???" />
   </component>
 </project>
