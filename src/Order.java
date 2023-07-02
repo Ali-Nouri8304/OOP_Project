@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Order {
     boolean ongoing = false;
-    int ID;
+    int orderID;
     ArrayList<Food> foods = new ArrayList<>();
     ArrayList<Integer> foodCounts = new ArrayList<>();
     int x_destination;
@@ -10,7 +10,7 @@ public class Order {
     Customer customer;
     String Status;
     Order(int ID, ArrayList<Food> food, ArrayList<Integer> foodCount, int x, int y, Customer person){
-        this.ID=ID;
+        this.orderID=ID;
         this.foods=food;
         this.foodCounts=foodCount;
         this.x_destination=x;

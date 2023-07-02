@@ -1,5 +1,6 @@
 public class Comment {
-    int ID;
+    int comID;
+    int foodID;
     String comment;
     String response;
     public void addComment(String com){

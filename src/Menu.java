@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class Menu {
     ArrayList<Food> foods;
     void editFood(int id,String element,String newElement){
-        int foodPlace= findFood(id).id;
+        int foodPlace= findFood(id).foodID;
         if(element.equals("name")){
             foods.get(foodPlace).name=newElement;
         }
@@ -18,11 +18,11 @@ public class Menu {
     void deleteFood(int id){
         foods.remove(id);
         for(int i=id;i<this.foods.size();i++){
-            foods.get(i).id--;
+            foods.get(i).foodID--;
         }
     }
     void deactivateFood(int id){
-        if(foods.get(id).ongoingOrder==0)
+        if(foods.get(id).ongoingOrders==0)
             foods.get(id).active=false;
         else
             System.out.println("There is an ongoing order containing this food item!");
@@ -36,7 +36,7 @@ public class Menu {
     Food findFood(int id){
         int a=-1;
         for(int i=0;i<foods.size();i++){
-            if(foods.get(i).id==id) {
+            if(foods.get(i).foodID==id) {
                 a = i;
                 break;
             }

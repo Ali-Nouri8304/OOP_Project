@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 
 public class Manager {
+    int managerID;
     private String userName;
     private String password;
     ArrayList<Restaurant> managerRestaurant;
@@ -11,15 +12,15 @@ public class Manager {
     public String getPassword() { return password;}
     public String getUserName() { return userName;}
 
-    Manager(String userName, String password, ArrayList<Restaurant> restaurants){
+    Manager(int id, String userName, String password){
+        this.managerID=id;
         this.setPassword(password);
         this.setUserName(userName);
-        this.managerRestaurant=new ArrayList<>(restaurants);
     }
     Restaurant findRes(int id){
         int a=-1;
         for(int i=0;i<managerRestaurant.size();i++){
-            if(managerRestaurant.get(i).ID==id) {
+            if(managerRestaurant.get(i).resID==id) {
                 a = i;
                 break;
             }

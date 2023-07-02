@@ -1,7 +1,8 @@
 import java.util.ArrayList;
 
 public class Restaurant {
-    int ID;
+    int resID;
+    int managerID;
     int x;
     int y;
     String foodType;
