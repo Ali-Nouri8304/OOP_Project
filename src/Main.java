@@ -20,10 +20,10 @@ public class Main {
         }
     }*/
 
-    static void showRestaurants(int id, Statement st, ResultSet rs){
+    static void showRestaurants(int managerID, Statement st, ResultSet rs){
         System.out.println("Restaurants:");
         try {
-            rs=st.executeQuery("SELECT * FROM restaurant WHERE managerID="+id);
+            rs=st.executeQuery("SELECT * FROM restaurant WHERE managerID="+managerID);
             while(rs.next()){
                 String str=rs.getString("name");
                 System.out.println(str);
@@ -51,6 +51,21 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
+    static void showMenu(int resID, Statement st, ResultSet rs){
+        try {
+            rs=st.executeQuery("SELECT * FROM food WHERE resID="+resID);
+            while(rs.next()){
+                String str=rs.getString("name");
+                double price=rs.getDouble("price");
+                boolean active= rs.getBoolean("active");
+                int discount=rs.getInt("discount");
+                System.out.println(str + "\t" + price + "\t" + active + "\t" + discount + "%");
+            }
+        } catch (SQLException e) {
+            System.err.println("showRestaurant has error");
+            throw new RuntimeException(e);
+        }
+    }
     //driver code
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
         Scanner input = new Scanner(System.in);
@@ -58,19 +73,21 @@ public class Main {
         String url = "jdbc:mysql://localhost:3306/database";
         Connection con = DriverManager.getConnection(url, "root", "Bale2004");
         Statement st = con.createStatement();
+        ResultSet rs = null;
         int phase = 0; //login and register
-        String command = input.nextLine();
+        String command="";
         String user = "", pass = "";
         while (true) {
             if (phase == 0) {
                 System.out.println("login/register");
+                command=input.nextLine();
                 switch (command) {
                     case "add manager":
                         user = input.next();
                         pass = input.next();
                         System.out.println("Welcome Manager." + user + "!");
                         st.executeUpdate("INSERT INTO manager(userName,password) VALUES " + "(\"" + user + "\",\"" + pass + "\")");
-                        phase = 1; //add restaurant
+                        phase = 1; //manager's page
                         break;
                     case "add customer":
                         user = input.next();
@@ -88,28 +105,92 @@ public class Main {
                     case "login customer":
                 }
             }
-            int id = 0;
+            int manID = 0, resID = 0;
+            
             if (phase == 1) {
-                ResultSet rs = st.executeQuery("SELECT * FROM manager WHERE userName=" + "\'" + user + "\'");
+                rs = st.executeQuery("SELECT * FROM manager WHERE userName=" + "\"" + user + "\"");
                 while (rs.next()) {
-                    id = rs.getInt("managerID");
+                    manID = rs.getInt("managerID");
                 }
-                System.out.println("Please enter restaurant name, x, y, food type!");
-                String name = input.next();
-                int x = input.nextInt();
-                int y = input.nextInt();
-                String foodType = input.next();
-                addRestaurant(name, x, y, foodType, id, st);
-                phase = 2; //restaurant page
+                showRestaurants(manID,st,rs);
+                command=input.nextLine();
+                if(command.equals("add restaurant")) {
+                    System.out.println("Please enter restaurant name, x, y, food type!");
+                    String name = input.next();
+                    int x = input.nextInt();
+                    int y = input.nextInt();
+                    String foodType = input.next();
+                    addRestaurant(name, x, y, foodType, manID, st);
+                    rs = st.executeQuery("SELECT * FROM restaurant WHERE managerID=" + manID + " AND name=" + "\"" + name + "\"");
+                    while (rs.next()) {
+                        resID = rs.getInt("resID");
+                    }
+                    phase = 2; //restaurant page
+                }
+                if(command.equals("select restaurant")){
+                    phase = 2; //restaurant page
+                }
             }
             if (phase == 2) {
-                System.out.println("Please add food name, price!");
-                while (!input.next().equals("end")) {
-                    String name = input.next();
-                    double price = input.nextDouble();
-                    addFood(name, price, id, st);
+                command=input.nextLine();
+                if(command.equals("show menu")) {
+                    showMenu(resID,st,rs);
+                    command=input.nextLine();
+                    if (command.equals("add food")) {
+                        System.out.println("Please add food name, price!");
+                        while (!input.next().equals("end")) {
+                            String name = input.next();
+                            Double price = input.nextDouble();
+                            addFood(name, price, resID, st);
+                        }
+                    }
+                    if (command.equals("edit food")) {
+
+                    }
+                    if (command.equals("delete food")) {
+
+                    }
+                    if (command.equals("activate food")) {
+
+                    }
+                    if (command.equals("deactivate food")) {
+
+                    }
+                    if (command.equals("select food")) {
+                        if (command.equals("show comments")) {
+
+                        }
+                        if (command.equals("add response")) {
+
+                        }
+                        if (command.equals("edit response")) {
+
+                        }
+                        if (command.equals("show ratings")) {
+
+                        }
+                    }
                 }
-                phase = 5; //manager's page
+                if(command.equals("show location")){
+
+                }
+                if(command.equals("show food type")){
+
+                }
+                if(command.equals("edit food type")){
+
+                }
+                if (command.equals("show open orders")) {
+                    if (command.equals("edit order")) {
+
+                    }
+                    if (command.equals("show order details")) {
+
+                    }
+                }
+                if (command.equals("show order history")) {
+
+                }
             }
             if(phase==4){
 
