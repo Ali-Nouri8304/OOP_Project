@@ -20,12 +20,12 @@ public class Main {
         }
     }*/
 
-    static void showRestaurants(int managerID, Statement st, ResultSet rs){
+    static void showRestaurants(int managerID, Statement st, ResultSet rs) {
         System.out.println("Restaurants:");
         try {
-            rs=st.executeQuery("SELECT * FROM restaurant WHERE managerID="+managerID);
-            while(rs.next()){
-                String str=rs.getString("name");
+            rs = st.executeQuery("SELECT * FROM restaurant WHERE managerID=" + managerID);
+            while (rs.next()) {
+                String str = rs.getString("name");
                 System.out.println(str);
             }
         } catch (SQLException e) {
@@ -33,7 +33,8 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
-    static void addRestaurant(String Name, int x, int y, String foodType, int managerID, Statement st){
+
+    static void addRestaurant(String Name, int x, int y, String foodType, int managerID, Statement st) {
         try {
             st.executeUpdate("INSERT INTO restaurant(managerID,foodType,x,y,name) VALUES " +
                     "(" + managerID + ",\"" + foodType + "\"," + x + "," + y + ",\"" + Name + "\")");
@@ -42,7 +43,8 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
-    static void addFood(String Name, double price, int resID, Statement st){
+
+    static void addFood(String Name, double price, int resID, Statement st) {
         try {
             st.executeUpdate("INSERT INTO food(name,price,discount,resID,active,ongoingOrders) VALUES(\""
                     + Name + "\"," + price + "," + 0 + "," + resID + "," + 0 + "," + 0 + ")");
@@ -51,21 +53,39 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
-    static void showMenu(int resID, Statement st, ResultSet rs){
+
+    static void showMenu(int resID, Statement st, ResultSet rs) {
+        System.out.println("Menu:");
         try {
-            rs=st.executeQuery("SELECT * FROM food WHERE resID="+resID);
-            while(rs.next()){
-                String str=rs.getString("name");
-                double price=rs.getDouble("price");
-                boolean active= rs.getBoolean("active");
-                int discount=rs.getInt("discount");
-                System.out.println(str + "\t" + price + "\t" + active + "\t" + discount + "%");
+            rs = st.executeQuery("SELECT * FROM food WHERE resID=" + resID);
+            while (rs.next()) {
+                int id = rs.getInt("foodID");
+                String str = rs.getString("name");
+                double price = rs.getDouble("price");
+                boolean active = rs.getBoolean("active");
+                int discount = rs.getInt("discount");
+                System.out.println(id + "\t" + str + "\t" + price + "\t" + active + "\t" + discount + "%");
             }
         } catch (SQLException e) {
             System.err.println("showRestaurant has error");
             throw new RuntimeException(e);
         }
     }
+    static void showComments(int id, Statement st, ResultSet rs) throws SQLException {
+        rs = st.executeQuery("SELECT * FROM comment WHERE foodID=" + id);
+        String comment ,response;
+        System.out.println("comments:");
+        while (rs.next()) {
+             comment= rs.getString("comment");
+             response=rs.getString("response");
+            if(!comment.equals("")) {
+                System.out.print(comment + "\t");
+                if (!response.equals("")) System.out.println("response: " + response);
+                else System.out.println("No response");
+            }
+        }
+    }
+
     //driver code
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
         Scanner input = new Scanner(System.in);
@@ -75,12 +95,12 @@ public class Main {
         Statement st = con.createStatement();
         ResultSet rs = null;
         int phase = 0; //login and register
-        String command="";
+        String command = "";
         String user = "", pass = "";
         while (true) {
-            if (phase == 0) {
+            while (phase == 0) {
                 System.out.println("login/register");
-                command=input.nextLine();
+                command = input.nextLine();
                 switch (command) {
                     case "add manager":
                         user = input.next();
@@ -94,27 +114,27 @@ public class Main {
                         pass = input.next();
                         System.out.println("Welcome Customer." + user + "!");
                         System.out.println("Please enter x, y, balance!");
-                        int x=input.nextInt();
-                        int y=input.nextInt();
-                        double balance=input.nextDouble();
+                        int x = input.nextInt();
+                        int y = input.nextInt();
+                        double balance = input.nextDouble();
                         st.executeUpdate("INSERT INTO customer(userName,password,x,y,balance) VALUES(\""
                                 + user + "\",\"" + pass + "\"," + x + "," + y + "," + balance + ")");
-                        phase=4; //customer's page
+                        phase = 4; //customer's page
                     case "login manager":
 
                     case "login customer":
                 }
             }
             int manID = 0, resID = 0;
-            
-            if (phase == 1) {
+
+            while (phase == 1) {
                 rs = st.executeQuery("SELECT * FROM manager WHERE userName=" + "\"" + user + "\"");
                 while (rs.next()) {
                     manID = rs.getInt("managerID");
                 }
-                showRestaurants(manID,st,rs);
-                command=input.nextLine();
-                if(command.equals("add restaurant")) {
+                showRestaurants(manID, st, rs);
+                command = input.nextLine();
+                if (command.equals("add restaurant")) {
                     System.out.println("Please enter restaurant name, x, y, food type!");
                     String name = input.next();
                     int x = input.nextInt();
@@ -127,15 +147,16 @@ public class Main {
                     }
                     phase = 2; //restaurant page
                 }
-                if(command.equals("select restaurant")){
+                if (command.equals("select restaurant")) {
                     phase = 2; //restaurant page
                 }
             }
-            if (phase == 2) {
-                command=input.nextLine();
-                if(command.equals("show menu")) {
-                    showMenu(resID,st,rs);
-                    command=input.nextLine();
+            while (phase == 2) {
+                System.out.println(rs.getString("name"));
+                command = input.nextLine();
+                if (command.equals("show menu")) {
+                    showMenu(resID, st, rs);
+                    command = input.nextLine();
                     if (command.equals("add food")) {
                         System.out.println("Please add food name, price!");
                         while (!input.next().equals("end")) {
@@ -145,39 +166,91 @@ public class Main {
                         }
                     }
                     if (command.equals("edit food")) {
-
+                        System.out.println("Enter the food ID you want to edit!");
+                        int id = input.nextInt();
+                        System.out.println("Name or Price?");
+                        String str = input.next();
+                        if (str.equals("name")) {
+                            String New = input.next();
+                            st.executeUpdate("UPDATE food SET name=\'" + New + "\' WHERE foodID=" + id + ")");
+                        } else {
+                            double New = input.nextDouble();
+                            st.executeUpdate("UPDATE food SET price=" + New + " WHERE foodID=" + id + ")");
+                        }
                     }
                     if (command.equals("delete food")) {
-
+                        System.out.println("Enter the food ID you want to delete!");
+                        int id = input.nextInt();
+                        System.out.println("Are you sure you want to delete this food ID?");
+                        String confirmation = input.next();
+                        if (confirmation.equals("yes")) {
+                            rs = st.executeQuery("SELECT * FROM food WHERE foodID=" + id);
+                            int onOrd = 1;
+                            while (rs.next()) {
+                                onOrd = rs.getInt("ongoingOrders");
+                            }
+                            if (onOrd != 0) {
+                                System.out.println("You can not delete the selected food item");
+                            } else {
+                                st.executeUpdate("DELETE FROM food WHERE foodID=" + id);
+                                System.out.println("Food item deleted:((((");
+                            }
+                        } else {
+                            System.out.println("Canceled deleting");
+                        }
                     }
                     if (command.equals("activate food")) {
-
+                        System.out.println("Enter the food ID you want to active!");
+                        int id = input.nextInt();
+                        st.executeUpdate("UPDATE food SET active=1");
+                        System.out.println("Food item activated:))))");
                     }
                     if (command.equals("deactivate food")) {
-
+                        System.out.println("Enter the food ID you want to deactivate!");
+                        int id = input.nextInt();
+                        System.out.println("Are you sure you want to deactivate this food ID?");
+                        String confirmation = input.next();
+                        if (confirmation.equals("yes")) {
+                            rs = st.executeQuery("SELECT * FROM food WHERE foodID=" + id);
+                            int onOrd = 1;
+                            while (rs.next()) {
+                                onOrd = rs.getInt("ongoingOrders");
+                            }
+                            if (onOrd != 0) {
+                                System.out.println("You can not deactivate the selected food item");
+                            } else {
+                                st.executeUpdate("UPDATE food SET active=0");
+                                System.out.println("Food item deactivated:((((");
+                            }
+                        } else {
+                            System.out.println("Canceled deactivating");
+                        }
                     }
                     if (command.equals("select food")) {
-                        if (command.equals("show comments")) {
+                        System.out.println("Enter the food ID you want to select");
+                        int id=input.nextInt();
+                        String com=input.nextLine();
+                        if (com.equals("show comments")) {
+                            showComments(id,st,rs);
+                        }
+                        if (com.equals("add response")) {
 
                         }
-                        if (command.equals("add response")) {
+                        if (com.equals("edit response")) {
 
                         }
-                        if (command.equals("edit response")) {
-
-                        }
-                        if (command.equals("show ratings")) {
+                        if (com.equals("show ratings")) {
 
                         }
                     }
                 }
-                if(command.equals("show location")){
+                if (command.equals("show location")) {
 
                 }
-                if(command.equals("show food type")){
+                if (command.equals("show food type")) {
 
                 }
-                if(command.equals("edit food type")){
+                if (command.equals("edit food type")) {
 
                 }
                 if (command.equals("show open orders")) {
@@ -192,9 +265,7 @@ public class Main {
 
                 }
             }
-            if(phase==4){
 
-            }
         }
     }
 }
