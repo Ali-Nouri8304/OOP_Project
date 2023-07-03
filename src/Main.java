@@ -76,10 +76,11 @@ public class Main {
         String comment ,response;
         System.out.println("comments:");
         while (rs.next()) {
+            int ID=rs.getInt("commentID");
              comment= rs.getString("comment");
              response=rs.getString("response");
             if(!comment.equals("")) {
-                System.out.print(comment + "\t");
+                System.out.print(ID + comment + "\t");
                 if (!response.equals("")) System.out.println("response: " + response);
                 else System.out.println("No response");
             }
