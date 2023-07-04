@@ -86,6 +86,9 @@ public class Main {
             }
         }
     }
+    static void showOpenOrders(int resid,Statement st, ResultSet rs){
+
+    }
 
     //driver code
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
@@ -235,30 +238,71 @@ public class Main {
                             showComments(id,st,rs);
                         }
                         if (com.equals("add response")) {
-
+                            System.out.println("Enter the comment ID you want to respond to");
+                            int comid=input.nextInt();
+                            String newResponse=input.nextLine();
+                            st.executeUpdate("UPDATE comment SET response=\'" + newResponse + "\' WHERE commentID=" + comid + ")");
+                            System.out.println("Response set.");
                         }
                         if (com.equals("edit response")) {
-
+                            System.out.println("Enter the comment ID you want to edit the response");
+                            int comid=input.nextInt();
+                            rs = st.executeQuery("SELECT * FROM comment WHERE commentID=" + comid);
+                            String oldResponse="";
+                            while (rs.next()) {
+                                 oldResponse=rs.getString("response");
+                            }
+                            if(oldResponse.equals("")){
+                                System.out.println("YOU CAN NOT EDIT A RESPONSE THAT DOES NOT EXIST!!!!!");
+                                System.out.println("TRY ADDING ONE YOU PIECE OF SHIT!!!!!");
+                            }
+                            else {
+                                String newResponse = input.nextLine();
+                                st.executeUpdate("UPDATE comment SET response=\'" + newResponse + "\' WHERE commentID=" + comid + ")");
+                                System.out.println("Response set.");
+                            }
                         }
                         if (com.equals("show ratings")) {
-
+                            int foodid=input.nextInt();
+                            rs = st.executeQuery("SELECT * FROM rating WHERE foodID=" + foodid);
+                            while (rs.next()){
+                                double rate=rs.getDouble("rate");
+                                System.out.print(rate + "\t");
+                            }
+                            System.out.println();
                         }
                     }
                 }
                 if (command.equals("show location")) {
-
+                    rs=st.executeQuery("SELECT * FROM restaurant WHERE resID=" + resID);
+                    int x=0,y=0;
+                    while (rs.next()){
+                        x=rs.getInt("x");
+                        y=rs.getInt("y");
+                    }
+                    System.out.println("x: " + x + "\t" + "y= " + y);
                 }
                 if (command.equals("show food type")) {
-
+                    rs=st.executeQuery("SELECT * FROM restaurant WHERE resID=" + resID);
+                    String FT="";
+                    while (rs.next()){
+                        FT=rs.getString("foodType");
+                    }
+                    System.out.println("Food Type: " + FT);
                 }
                 if (command.equals("edit food type")) {
-
+                    System.out.println("Enter the new food type:");
+                    String newFT=input.nextLine();
+                    rs=st.executeQuery("UPDATE restaurant SET foodType=\'" + newFT + "\' WHERE resID=" + resID +")");
+                    System.out.println("Food type changed to " + newFT + ".");
                 }
                 if (command.equals("show open orders")) {
-                    if (command.equals("edit order")) {
+                    String com="";
+                    showOpenOrders(resID,st,rs);
+                    if (com.equals("edit order")) {
 
                     }
-                    if (command.equals("show order details")) {
+                    if (com.equals("show order details")) {
 
                     }
                 }
