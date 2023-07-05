@@ -144,7 +144,59 @@ public class Main {
             System.out.println(id + "." + rate);
         }
     }
-
+    static void showCart(int cusID, Statement st, ResultSet rs) throws SQLException{
+        rs=st.executeQuery("CREATE TABLE temp (SELECT cartdetails.cartID, cartdetails.foodID, " +
+                "cartdetails.count, cart.customerID, cart.totalPrice FROM cartdetails LEFT JOIN " +
+                "cart ON cart.cartID=cartdetails.cartID);" +
+                "SELECT food.name, temp.count, food.price,food.re FROM temp LEFT JOIN " +
+                "food ON food.foodID=temp.foodID WHERE customerID=" + cusID);
+        while (rs.next()){
+            String name=rs.getString("name");
+            int count=rs.getInt("count");
+            String price=rs.getString("price");
+            System.out.println(name + "\t" + count + "\t" + price);
+        }
+        rs=st.executeQuery("SELECT * FROM cart WHERE cartID=" + cusID);
+        double tot=0;
+        while (rs.next()){
+            tot=rs.getDouble("totalPrice");
+        }
+        System.out.println("Total Price : " + tot);
+        rs= st.executeQuery("DROP TABLE temp");
+    }
+    static void addToCart(int foodID, int count, int cusID, Statement st, ResultSet rs) throws SQLException {
+        st.executeUpdate("INSERT INTO cartdetails(cartID,foodID,cartdetails.count) " +
+                "VALUES (" + cusID + "," + foodID + "," + count + ")");
+        double price = 0,total = 0;
+        int discount=0;
+        rs= st.executeQuery("SELECT * FROM cart WHERE cartID=" + cusID);
+        while(rs.next()){
+            total= rs.getDouble("totalPrice");
+        }
+        rs= st.executeQuery("SELECT * FROM food WHERE foodID=" + foodID);
+        while(rs.next()){
+            price= rs.getDouble("price")*count;
+            discount=rs.getInt("discount");
+        }
+        total+=price*(100-discount)/100;
+        st.executeUpdate("UPDATE cart SET totalPrice=" + total);
+    }
+    static void showOrderHistoryCus(int cusID, Statement st, ResultSet rs) throws SQLException {
+        rs=st.executeQuery("CREATE TABLE temp (SELECT database.order.orderID, database.order.status, " +
+                "database.order.customerID, orderdetails.foodID, orderdetails.count FROM orderdetails LEFT JOIN " +
+                "database.order ON orderdetails.orderID=database.order.orderID);" +
+                "SELECT temp.orderID, food.name, temp.count, temp.status, food.resId FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
+                " WHERE customerID=" + cusID);
+        while (rs.next()){
+            int id=rs.getInt("orderID");
+            String name=rs.getString("name");
+            int count=rs.getInt("count");
+            int resid=rs.getInt("resID");
+            String status=rs.getString("status");
+            System.out.println(id + "." + name + "\t" + count + "\t" + resid + "\t" + status);
+        }
+        rs= st.executeQuery("DROP TABLE temp");
+    }
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
         Scanner input = new Scanner(System.in);
         Class.forName("com.mysql.cj.jdbc.Driver");
@@ -165,7 +217,8 @@ public class Main {
                         user = input.next();
                         pass = input.next();
                         System.out.println("Welcome Manager." + user + "!");
-                        st.executeUpdate("INSERT INTO manager(userName,password) VALUES " + "(\"" + user + "\",\"" + pass + "\")");
+                        st.executeUpdate("INSERT INTO manager(userName,password) VALUES " +
+                                "(\"" + user + "\",\"" + pass + "\")");
                         phase = 1; //manager's page
                         break;
                     case "add customer":
@@ -179,9 +232,51 @@ public class Main {
                         st.executeUpdate("INSERT INTO customer(userName,password,x,y,balance) VALUES(\""
                                 + user + "\",\"" + pass + "\"," + x + "," + y + "," + balance + ")");
                         phase = 3; //customer's page
+                    case "add delivery":
+                        user = input.next();
+                        pass = input.next();
+                        System.out.println("Welcome delivery." + user + "!");
+                        st.executeUpdate("INSERT INTO delivery(userName,password) VALUES(\""
+                                + user + "\",\"" + pass + "\")");
+                        phase = 6; //delivery's page
                     case "login manager":
-
+                        System.out.println("Enter username and password:");
+                        user=input.next();
+                        pass=input.next();
+                        rs=st.executeQuery("SELECT * FROM manager");
+                        String manUse="" , manPass="";
+                        boolean findMan=false;
+                        while (rs.next()){
+                            manUse=rs.getString("userName");
+                            manPass=rs.getString("password");
+                            if(manUse.equals(user) && manPass.equals(pass)){
+                                findMan=true;
+                                break;
+                            }
+                        }
+                        if(findMan) phase=1;
+                        else{
+                            System.out.println("There is no account with this username or password!");
+                        }
                     case "login customer":
+                        System.out.println("Enter username and password:");
+                        user=input.next();
+                        pass=input.next();
+                        rs=st.executeQuery("SELECT * FROM manager");
+                        String cusUse="" , cusPass="";
+                        boolean findCus=false;
+                        while (rs.next()){
+                            cusUse=rs.getString("userName");
+                            cusPass=rs.getString("password");
+                            if(cusUse.equals(user) && cusPass.equals(pass)){
+                                findCus=true;
+                                break;
+                            }
+                        }
+                        if(findCus) phase=3;
+                        else{
+                            System.out.println("There is no account with this username or password!");
+                        }
                 }
             }   //login & register
             while (phase == 1) {
@@ -382,11 +477,13 @@ public class Main {
                     showOrderHistory(resID,st,rs);
                 }
             }   //manager's restaurant page
-            while (phase == 3){
+            while (phase == 3) {
                 rs = st.executeQuery("SELECT * FROM customer WHERE userName=" + "\"" + user + "\" AND password=" + "\"" + pass + "\"");
                 while (rs.next()) {
                     cusID = rs.getInt("customerID");
                 }
+                st.executeUpdate("INSERT INTO cart(cartID,customerID,totalPrice) VALUES " +
+                        "(" + cusID + "," + cusID + ",0)");
                 rs= st.executeQuery("SELECT * FROM restaurant");
                 while (rs.next()){
                     int id=rs.getInt("resID");
@@ -418,8 +515,48 @@ public class Main {
                     double newPrice= input.nextDouble();
                     st.executeUpdate("UPDATE customer SET balance=" + newPrice + " WHERE customerID=" + cusID);
                 }
+                if (command.equals("show cart")){
+                    showCart(cusID,st,rs);
+                    System.out.println("confirm order?");
+                    String confirmation=input.next();
+                    if(confirmation.equals("yes")){
+                        st.executeUpdate("INSERT INTO database.order(status,customerID) " +
+                                "VALUES (\"preparing\"," + cusID + ")");
+                        rs=st.executeQuery("SELECT * FROM database.order WHERE cusotmerID="+cusID);
+                        int orderID=0;
+                        while (rs.next()) {
+                            orderID=rs.getInt("orderID");
+                        }
+                        rs=st.executeQuery("SELECT * FROM cartdetails WHERE cartID="+cusID);
+                        while(rs.next()){
+                            int foodid=rs.getInt("foodID");
+                            int count=rs.getInt("count");
+                            st.executeUpdate("INSERT INTO orderdetails(orderId,foodID,orderdetails.count)" +
+                                    " VALUES("+orderID+","+foodid+","+count+")");
+                        }
+                        st.executeUpdate("DELETE FROM cartdetails WHERE cartID="+cusID);
+                        rs=st.executeQuery("SELECT * FROM customer WHERE customerID=" + cusID);
+                        double balance=0,tot=0;
+                        while (rs.next()){
+                            balance=rs.getDouble("balance");
+                        }
+                        rs= st.executeQuery("SELECT * FROM cart WHERE cartID=" + cusID);
+                        while (rs.next()){
+                            tot=rs.getDouble("totalPrice");
+                        }
+                        balance-=tot;
+                        st.executeUpdate("UPDATE customer SET balance=" + balance + " WHERE customerID=" + cusID);
+                        st.executeUpdate("UPDATE cart SET totalPrice=0");
+                    }
+                    else{
+                        phase=4;
+                    }
+                }
+                if(command.equals("show order history")){
+                    showOrderHistoryCus(cusID,st,rs);
+                }
             }    //customer's page
-            while (phase == 4){
+            while (phase == 4) {
                 showMenu(resID,st,rs);
                 System.out.println("Select food or search:");
                 command=input.nextLine();
@@ -538,7 +675,7 @@ public class Main {
                     }
                 }
             }    //customer's restaurant page
-            while (phase == 5){
+            while (phase == 5) {
                 rs=st.executeQuery("SELECT * FROM food WHERE foodID=" + foodID);
                 while (rs.next()){
                     String name=rs.getString("name");
@@ -547,7 +684,9 @@ public class Main {
                 command=input.nextLine();
                 if(command.equals("return")) phase=4;
                 if(command.equals("add to cart")){
-
+                    System.out.println("How many of the selected food?");
+                    int foocou=input.nextInt();
+                    addToCart(foodID,foocou,cusID,st,rs);
                 }
                 if(command.equals("display comments")){
                     showComments(foodID,st,rs);
