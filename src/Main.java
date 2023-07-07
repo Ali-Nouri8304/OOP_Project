@@ -34,7 +34,6 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
-
     static void addRestaurant(String Name, int x, int y, String foodType, int managerID, Statement st) {
         try {
             st.executeUpdate("INSERT INTO restaurant(managerID,foodType,x,y,name) VALUES " +
@@ -44,17 +43,15 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
-
     static void addFood(String Name, double price, int resID, Statement st) {
         try {
             st.executeUpdate("INSERT INTO food(name,price,discount,resID,active,ongoingOrders) VALUES(\""
-                    + Name + "\"," + price + "," + 0 + "," + resID + "," + 0 + "," + 0 + ")");
+                    + Name + "\"," + price + "," + 0 + "," + resID + "," + 1 + "," + 0 + ")");
         } catch (SQLException e) {
             System.err.println("addFood has error");
             throw new RuntimeException(e);
         }
     }
-
     static void showMenu(int resID, Statement st, ResultSet rs) {
         System.out.println("Menu:");
         try {
@@ -97,11 +94,13 @@ public class Main {
         }
     }
     static void showOpenOrders(int resID, Statement st, ResultSet rs) throws SQLException {
-        rs=st.executeQuery("CREATE TABLE temp (SELECT database.order.orderID, database.order.status, " +
-                "database.order.customerID, orderdetails.foodID, orderdetails.count FROM orderdetails LEFT JOIN " +
-                "database.order ON orderdetails.orderID=database.order.orderID);" +
-                "SELECT temp.orderID, food.name, temp.count, temp.status FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
-                " WHERE resID=" + resID + " AND status=\"preparing\" OR \"delivering\"");
+        st.executeUpdate("CREATE TABLE temp (SELECT `database`.order.orderID,`database`.order.status," +
+                "                          `database`.order.customerID," +
+                "                          orderdetails.foodID,orderdetails.count FROM orderdetails LEFT JOIN" +
+                "                `database`.order ON orderdetails.orderID= `database`.order.orderID)");
+        rs=st.executeQuery("SELECT `database`.temp.orderID, food.name, `database`.temp.count, " +
+                "`database`.temp.status FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
+                " WHERE resID=" + resID + " AND `database`.temp.status=\'preparing\' OR `database`.temp.status=\'delivering\'");
         while (rs.next()){
             int id=rs.getInt("orderID");
             String name=rs.getString("name");
@@ -109,13 +108,15 @@ public class Main {
             String status=rs.getString("status");
             System.out.println(id + "." + name + "\t" + count + "\t" + status);
         }
-        rs= st.executeQuery("DROP TABLE temp");
+        st.executeUpdate("DROP TABLE temp");
     }
     static void showOrderHistory(int resID, Statement st, ResultSet rs) throws SQLException {
-        rs=st.executeQuery("CREATE TABLE temp (SELECT database.order.orderID, database.order.status, " +
-                "database.order.customerID, orderdetails.foodID, orderdetails.count FROM orderdetails LEFT JOIN " +
-                "database.order ON orderdetails.orderID=database.order.orderID);" +
-                "SELECT temp.orderID, food.name, temp.count, temp.status FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
+        st.executeUpdate("CREATE TABLE temp (SELECT `database`.order.orderID,`database`.order.status," +
+                "                          `database`.order.customerID," +
+                "                          orderdetails.foodID,orderdetails.count FROM orderdetails LEFT JOIN" +
+                "                `database`.order ON orderdetails.orderID= `database`.order.orderID);");
+        rs=st.executeQuery("SELECT temp.orderID, food.name, temp.count, temp.status FROM temp " +
+                "LEFT JOIN food ON food.foodID=temp.foodID" +
                 " WHERE resID=" + resID);
         while (rs.next()){
             int id=rs.getInt("orderID");
@@ -124,7 +125,7 @@ public class Main {
             String status=rs.getString("status");
             System.out.println(id + "." + name + "\t" + count + "\t" + status);
         }
-        rs= st.executeQuery("DROP TABLE temp");
+        st.executeUpdate("DROP TABLE temp");
     }
     static void showResComments(int resID, Statement st, ResultSet rs) throws SQLException {
         rs=st.executeQuery("SELECT * FROM rescomment WHERE resID=" + resID);
@@ -145,16 +146,17 @@ public class Main {
         }
     }
     static void showCart(int cusID, Statement st, ResultSet rs) throws SQLException{
-        rs=st.executeQuery("CREATE TABLE temp (SELECT cartdetails.cartID, cartdetails.foodID, " +
+        st.executeUpdate("CREATE TABLE temp (SELECT cartdetails.cartID, cartdetails.foodID, " +
                 "cartdetails.count, cart.customerID, cart.totalPrice FROM cartdetails LEFT JOIN " +
-                "cart ON cart.cartID=cartdetails.cartID);" +
-                "SELECT food.name, temp.count, food.price,food.re FROM temp LEFT JOIN " +
-                "food ON food.foodID=temp.foodID WHERE customerID=" + cusID);
+                "cart ON cart.cartID=cartdetails.cartID)");
+        rs=st.executeQuery("SELECT food.name, temp.count, food.price, food.resID, food.discount FROM temp LEFT JOIN " +
+                        "food ON food.foodID=temp.foodID WHERE customerID=" + cusID);
         while (rs.next()){
             String name=rs.getString("name");
             int count=rs.getInt("count");
             String price=rs.getString("price");
-            System.out.println(name + "\t" + count + "\t" + price);
+            int dis=rs.getInt("discount");
+            System.out.println(name + "\t" + count + "\t" + price + "\t" + dis + "%");
         }
         rs=st.executeQuery("SELECT * FROM cart WHERE cartID=" + cusID);
         double tot=0;
@@ -162,7 +164,7 @@ public class Main {
             tot=rs.getDouble("totalPrice");
         }
         System.out.println("Total Price : " + tot);
-        rs= st.executeQuery("DROP TABLE temp");
+        st.executeUpdate("DROP TABLE temp");
     }
     static void addToCart(int foodID, int count, int cusID, Statement st, ResultSet rs) throws SQLException {
         st.executeUpdate("INSERT INTO cartdetails(cartID,foodID,cartdetails.count) " +
@@ -178,15 +180,16 @@ public class Main {
             price= rs.getDouble("price")*count;
             discount=rs.getInt("discount");
         }
-        total+=price*(100-discount)/100;
+        total=total+price*(100-discount)/100;
         st.executeUpdate("UPDATE cart SET totalPrice=" + total);
     }
     static void showOrderHistoryCus(int cusID, Statement st, ResultSet rs) throws SQLException {
-        rs=st.executeQuery("CREATE TABLE temp (SELECT database.order.orderID, database.order.status, " +
+        st.executeUpdate("CREATE TABLE temp (SELECT database.order.orderID, database.order.status, " +
                 "database.order.customerID, orderdetails.foodID, orderdetails.count FROM orderdetails LEFT JOIN " +
-                "database.order ON orderdetails.orderID=database.order.orderID);" +
-                "SELECT temp.orderID, food.name, temp.count, temp.status, food.resId FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
-                " WHERE customerID=" + cusID);
+                "database.order ON orderdetails.orderID=database.order.orderID");
+        rs= st.executeQuery("SELECT temp.orderID, food.name, temp.count, temp.status, food.resID " +
+                        "FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
+                        " WHERE customerID=" + cusID);
         while (rs.next()){
             int id=rs.getInt("orderID");
             String name=rs.getString("name");
@@ -196,6 +199,18 @@ public class Main {
             System.out.println(id + "." + name + "\t" + count + "\t" + resid + "\t" + status);
         }
         rs= st.executeQuery("DROP TABLE temp");
+    }
+    static void showTime(int orderID, Statement st, ResultSet rs){
+
+    }
+    static void addOrederDetails(int orderID, int cusID, Statement st, ResultSet rs) throws SQLException {
+        rs=st.executeQuery("SELECT * FROM cartdetails WHERE cartID="+cusID);
+        while (rs.next()){
+            int foodid=rs.getInt("foodID");
+            int count=rs.getInt("count");
+            st.executeUpdate("INSERT INTO orderdetails(orderId,foodID,orderdetails.count)" +
+                    " VALUES("+orderID+","+foodid+","+count+")");
+        }
     }
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
         Scanner input = new Scanner(System.in);
@@ -208,7 +223,7 @@ public class Main {
         String command = "";
         String user = "", pass = "";
         while (true) {
-            int manID = 0, resID = 0, cusID = 0, foodID = 0;
+            int manID = 0, resID = 0, cusID = 0, foodID = 0, orderID = 0;
             while (phase == 0) {
                 System.out.println("login/register");
                 command = input.nextLine();
@@ -231,7 +246,14 @@ public class Main {
                         double balance = input.nextDouble();
                         st.executeUpdate("INSERT INTO customer(userName,password,x,y,balance) VALUES(\""
                                 + user + "\",\"" + pass + "\"," + x + "," + y + "," + balance + ")");
-                        phase = 3; //customer's page
+                        rs = st.executeQuery("SELECT * FROM customer WHERE userName=" + "\"" + user + "\" AND password=" + "\"" + pass + "\"");
+                        while (rs.next()) {
+                            cusID = rs.getInt("customerID");
+                        }
+                        st.executeUpdate("INSERT INTO cart(cartID,customerID,totalPrice) VALUES " +
+                                "(" + cusID + "," + cusID + ",0)");
+                        phase = 3;
+                        break;//customer's page
                     case "add delivery":
                         user = input.next();
                         pass = input.next();
@@ -254,15 +276,19 @@ public class Main {
                                 break;
                             }
                         }
-                        if(findMan) phase=1;
+                        if(findMan) {
+                            phase=1;
+                            break;
+                        }
                         else{
                             System.out.println("There is no account with this username or password!");
+                            break;
                         }
                     case "login customer":
                         System.out.println("Enter username and password:");
                         user=input.next();
                         pass=input.next();
-                        rs=st.executeQuery("SELECT * FROM manager");
+                        rs=st.executeQuery("SELECT * FROM customer");
                         String cusUse="" , cusPass="";
                         boolean findCus=false;
                         while (rs.next()){
@@ -289,7 +315,7 @@ public class Main {
                 if(command.equals("return")) phase=0;
                 if (command.equals("add restaurant")) {
                     System.out.println("Please enter restaurant name, x, y, food type!");
-                    String name = input.next();
+                    String name = input.nextLine();
                     int x = input.nextInt();
                     int y = input.nextInt();
                     String foodType = input.next();
@@ -308,18 +334,26 @@ public class Main {
                 }
             }   //manager's page
             while (phase == 2) {
-                System.out.println(rs.getString("name"));
+                String resname="";
+                rs=st.executeQuery("SELECT * FROM restaurant WHERE resID=" + resID);
+                while (rs.next()){
+                    resname=rs.getString("name");
+                }
+                System.out.println(resname + ":");
                 command = input.nextLine();
-                if(command.equals("return")) phase=1;
+                if (command.equals("return")) phase=1;
                 if (command.equals("show menu")) {
                     showMenu(resID, st, rs);
                     command = input.nextLine();
-                    if(command.equals("return")) break;
+                    if(command.equals("return")) phase=2;
                     if (command.equals("add food")) {
                         System.out.println("Please add food name, price!");
-                        while (!input.next().equals("end")) {
+                        while (true) {
                             String name = input.next();
-                            Double price = input.nextDouble();
+                            if(name.equals("end")){
+                                break;
+                            }
+                            double price = input.nextDouble();
                             addFood(name, price, resID, st);
                         }
                     }
@@ -368,7 +402,7 @@ public class Main {
                     if (command.equals("activate food")) {
                         System.out.println("Enter the food ID you want to active!");
                         int id = input.nextInt();
-                        st.executeUpdate("UPDATE food SET active=1");
+                        st.executeUpdate("UPDATE food SET active=1 WHERE foodID=" + id);
                         System.out.println("Food item activated:))))");
                     }
                     if (command.equals("deactivate food")) {
@@ -385,7 +419,7 @@ public class Main {
                             if (onOrd != 0) {
                                 System.out.println("You can not deactivate the selected food item");
                             } else {
-                                st.executeUpdate("UPDATE food SET active=0");
+                                st.executeUpdate("UPDATE food SET active=0 WHERE foodID=" + id);
                                 System.out.println("Food item deactivated:((((");
                             }
                         } else {
@@ -396,7 +430,7 @@ public class Main {
                         System.out.println("Enter the food ID you want to select");
                         int id=input.nextInt();
                         String com=input.nextLine();
-                        if(com.equals("return")) break;
+                        if(com.equals("return")) phase=2;
                         if (com.equals("show comments")) {
                             showComments(id,st,rs);
                         }
@@ -443,7 +477,7 @@ public class Main {
                         x=rs.getInt("x");
                         y=rs.getInt("y");
                     }
-                    System.out.println("x: " + x + "\t" + "y= " + y);
+                    System.out.println("x: " + x + "\t" + "y: " + y);
                 }
                 if (command.equals("show food type")) {
                     rs=st.executeQuery("SELECT * FROM restaurant WHERE resID=" + resID);
@@ -456,14 +490,14 @@ public class Main {
                 if (command.equals("edit food type")) {
                     System.out.println("Enter the new food type:");
                     String newFT=input.nextLine();
-                    rs=st.executeQuery("UPDATE restaurant SET foodType=\"" + newFT + "\" WHERE resID=" + resID);
+                    st.executeUpdate("UPDATE restaurant SET foodType=\"" + newFT + "\" WHERE resID=" + resID);
                     System.out.println("Food type changed to " + newFT + ".");
                 }
                 if (command.equals("show open orders")) {
                     String com="";
                     showOpenOrders(resID,st,rs);
                     com=input.nextLine();
-                    if(com.equals("return")) break;
+                    if(com.equals("return")) phase=2;
                     if (com.equals("edit order")) {
                         System.out.println("Enter the order ID:");
                         int ordID=input.nextInt();
@@ -482,8 +516,6 @@ public class Main {
                 while (rs.next()) {
                     cusID = rs.getInt("customerID");
                 }
-                st.executeUpdate("INSERT INTO cart(cartID,customerID,totalPrice) VALUES " +
-                        "(" + cusID + "," + cusID + ",0)");
                 rs= st.executeQuery("SELECT * FROM restaurant");
                 while (rs.next()){
                     int id=rs.getInt("resID");
@@ -491,7 +523,7 @@ public class Main {
                     System.out.println(id + "." + name);
                 }
                 command=input.nextLine();
-                if(command.equals("return")) phase=0;
+                if (command.equals("return")) phase=0;
                 if (command.equals("search")){
                     System.out.println("Enter the restaurant name:");
                     String com=input.nextLine();
@@ -505,12 +537,12 @@ public class Main {
                     resID=input.nextInt();
                     phase=4; //customer's restaurant page
                 }
-                else if(command.equals("select")){
+                else if (command.equals("select")){
                     System.out.println("Enter the restaurant ID:");
                     resID=input.nextInt();
                     phase=4; //customer's restaurant page
                 }
-                if(command.equals("change balance")){
+                if (command.equals("change balance")){
                     System.out.println("Enter new balance:");
                     double newPrice= input.nextDouble();
                     st.executeUpdate("UPDATE customer SET balance=" + newPrice + " WHERE customerID=" + cusID);
@@ -522,18 +554,24 @@ public class Main {
                     if(confirmation.equals("yes")){
                         st.executeUpdate("INSERT INTO database.order(status,customerID) " +
                                 "VALUES (\"preparing\"," + cusID + ")");
-                        rs=st.executeQuery("SELECT * FROM database.order WHERE cusotmerID="+cusID);
-                        int orderID=0;
+                        rs=st.executeQuery("SELECT * FROM database.order WHERE customerID="+cusID);
                         while (rs.next()) {
                             orderID=rs.getInt("orderID");
                         }
+                        int[] foodid=new int[100];
+                        int[] count=new int[100];
+                        int i=0;
                         rs=st.executeQuery("SELECT * FROM cartdetails WHERE cartID="+cusID);
-                        while(rs.next()){
-                            int foodid=rs.getInt("foodID");
-                            int count=rs.getInt("count");
-                            st.executeUpdate("INSERT INTO orderdetails(orderId,foodID,orderdetails.count)" +
-                                    " VALUES("+orderID+","+foodid+","+count+")");
+                        while (rs.next()){
+                            foodid[i]=rs.getInt("foodID");
+                            count[i]=rs.getInt("count");
+                            i++;
                         }
+                        for (int j=0;j<i;j++) {
+                            st.executeUpdate("INSERT INTO orderdetails(orderId,foodID,orderdetails.count)" +
+                                    " VALUES(" + orderID + "," + foodid[j] + "," + count[j] + ")");
+                        }
+                        i=0;
                         st.executeUpdate("DELETE FROM cartdetails WHERE cartID="+cusID);
                         rs=st.executeQuery("SELECT * FROM customer WHERE customerID=" + cusID);
                         double balance=0,tot=0;
@@ -544,16 +582,33 @@ public class Main {
                         while (rs.next()){
                             tot=rs.getDouble("totalPrice");
                         }
-                        balance-=tot;
+                        balance=balance-tot;
+                        System.out.println("your order is now preparing.");
+                        System.out.println("Your new balance is: " + balance);
                         st.executeUpdate("UPDATE customer SET balance=" + balance + " WHERE customerID=" + cusID);
-                        st.executeUpdate("UPDATE cart SET totalPrice=0");
+                        st.executeUpdate("UPDATE cart SET totalPrice=0 WHERE customerID=" + cusID);
                     }
                     else{
-                        phase=4;
+                        phase=3;
                     }
                 }
-                if(command.equals("show order history")){
+                if (command.equals("show order history")){
                     showOrderHistoryCus(cusID,st,rs);
+                }
+                if (command.equals("show balance")){
+                    rs=st.executeQuery("SELECT * from customer WHERE customerID=" + cusID);
+                    double balance=rs.getDouble("balance");
+                    System.out.println("Your balance is: " + balance);
+                }
+                if (command.equals("show estimated time")){
+                    showTime(orderID,st,rs);
+                }
+                if (command.equals("show order status")){
+                    rs=st.executeQuery("SELECT * FROM database.order WHERE customerID= " + cusID);
+                    while (rs.next()){
+                        String stat=rs.getString("status");
+                        System.out.println("Your order is " + stat);
+                    }
                 }
             }    //customer's page
             while (phase == 4) {
@@ -687,6 +742,7 @@ public class Main {
                     System.out.println("How many of the selected food?");
                     int foocou=input.nextInt();
                     addToCart(foodID,foocou,cusID,st,rs);
+                    System.out.println("Food item added to your cart successfully.");
                 }
                 if(command.equals("display comments")){
                     showComments(foodID,st,rs);
