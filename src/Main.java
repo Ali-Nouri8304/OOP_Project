@@ -75,10 +75,10 @@ public class Main {
         System.out.println("comments:");
         while (rs.next()) {
             int ID=rs.getInt("commentID");
-             comment= rs.getString("comment");
-             response=rs.getString("response");
+            comment= rs.getString("comment");
+            response=rs.getString("response");
             if(!comment.equals("")) {
-                System.out.print(ID + comment + "\t");
+                System.out.print(ID + "." + comment + "\t");
                 if (!response.equals("")) System.out.println("response: " + response);
                 else System.out.println("No response");
             }
@@ -90,7 +90,7 @@ public class Main {
         while (rs.next()){
             int id=rs.getInt("rateID");
             double rate=rs.getDouble("rate");
-            System.out.println(id + "." + rate);
+            System.out.println(id + ".\t" + rate);
         }
     }
     static void showOpenOrders(int resID, Statement st, ResultSet rs) throws SQLException {
@@ -184,9 +184,10 @@ public class Main {
         st.executeUpdate("UPDATE cart SET totalPrice=" + total);
     }
     static void showOrderHistoryCus(int cusID, Statement st, ResultSet rs) throws SQLException {
-        st.executeUpdate("CREATE TABLE temp (SELECT database.order.orderID, database.order.status, " +
-                "database.order.customerID, orderdetails.foodID, orderdetails.count FROM orderdetails LEFT JOIN " +
-                "database.order ON orderdetails.orderID=database.order.orderID");
+        st.executeUpdate("CREATE TABLE temp (SELECT `database`.order.orderID,`database`.order.status," +
+                "                          `database`.order.customerID," +
+                "                          orderdetails.foodID,orderdetails.count FROM orderdetails LEFT JOIN" +
+                "                `database`.order ON orderdetails.orderID= `database`.order.orderID);");
         rs= st.executeQuery("SELECT temp.orderID, food.name, temp.count, temp.status, food.resID " +
                         "FROM temp LEFT JOIN food ON food.foodID=temp.foodID" +
                         " WHERE customerID=" + cusID);
@@ -198,19 +199,14 @@ public class Main {
             String status=rs.getString("status");
             System.out.println(id + "." + name + "\t" + count + "\t" + resid + "\t" + status);
         }
-        rs= st.executeQuery("DROP TABLE temp");
+        st.executeUpdate("DROP TABLE temp");
     }
     static void showTime(int orderID, Statement st, ResultSet rs){
 
     }
-    static void addOrederDetails(int orderID, int cusID, Statement st, ResultSet rs) throws SQLException {
-        rs=st.executeQuery("SELECT * FROM cartdetails WHERE cartID="+cusID);
-        while (rs.next()){
-            int foodid=rs.getInt("foodID");
-            int count=rs.getInt("count");
-            st.executeUpdate("INSERT INTO orderdetails(orderId,foodID,orderdetails.count)" +
-                    " VALUES("+orderID+","+foodid+","+count+")");
-        }
+    static void addResponse(String newResponse, int comID, Statement st, ResultSet rs) throws SQLException {
+        st.executeUpdate("UPDATE comment SET response=\"" + newResponse + "\" WHERE commentID=" + comID);
+        System.out.println("Response set.");
     }
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
         Scanner input = new Scanner(System.in);
@@ -391,7 +387,7 @@ public class Main {
                             System.out.println("Canceled deleting");
                         }
                     }
-                    if(command.equals("discount food")){
+                    if (command.equals("discount food")){
                         System.out.println("Enter the f***ing food ID you want to discount:");
                         int id=input.nextInt();
                         System.out.println("How much discount do you want you douche");
@@ -427,47 +423,11 @@ public class Main {
                         }
                     }
                     if (command.equals("select food")) {
+                        String com="";
                         System.out.println("Enter the food ID you want to select");
                         int id=input.nextInt();
-                        String com=input.nextLine();
-                        if(com.equals("return")) phase=2;
-                        if (com.equals("show comments")) {
-                            showComments(id,st,rs);
-                        }
-                        if (com.equals("add response")) {
-                            System.out.println("Enter the comment ID you want to respond to");
-                            int comid=input.nextInt();
-                            String newResponse=input.nextLine();
-                            st.executeUpdate("UPDATE comment SET response=\"" + newResponse + "\" WHERE commentID=" + comid);
-                            System.out.println("Response set.");
-                        }
-                        if (com.equals("edit response")) {
-                            System.out.println("Enter the comment ID you want to edit the response");
-                            int comid=input.nextInt();
-                            rs = st.executeQuery("SELECT * FROM comment WHERE commentID=" + comid);
-                            String oldResponse="";
-                            while (rs.next()) {
-                                 oldResponse=rs.getString("response");
-                            }
-                            if(oldResponse.equals("")){
-                                System.out.println("YOU CAN NOT EDIT A RESPONSE THAT DOES NOT EXIST!!!!!");
-                                System.out.println("TRY ADDING ONE YOU PIECE OF SHIT!!!!!");
-                            }
-                            else {
-                                String newResponse = input.nextLine();
-                                st.executeUpdate("UPDATE comment SET response=\"" + newResponse + "\" WHERE commentID=" + comid);
-                                System.out.println("Response set.");
-                            }
-                        }
-                        if (com.equals("show ratings")) {
-                            int foodid=input.nextInt();
-                            rs = st.executeQuery("SELECT * FROM rating WHERE foodID=" + foodid);
-                            while (rs.next()){
-                                double rate=rs.getDouble("rate");
-                                System.out.print(rate + "\t");
-                            }
-                            System.out.println();
-                        }
+                        foodID=id;
+                        phase=6;
                     }
                 }
                 if (command.equals("show location")) {
@@ -610,7 +570,7 @@ public class Main {
                         System.out.println("Your order is " + stat);
                     }
                 }
-            }    //customer's page
+            }   //customer's page
             while (phase == 4) {
                 showMenu(resID,st,rs);
                 System.out.println("Select food or search:");
@@ -729,7 +689,7 @@ public class Main {
                         System.out.println("There are no ratings with this id");
                     }
                 }
-            }    //customer's restaurant page
+            }   //customer's restaurant page
             while (phase == 5) {
                 rs=st.executeQuery("SELECT * FROM food WHERE foodID=" + foodID);
                 while (rs.next()){
@@ -764,8 +724,8 @@ public class Main {
                     else{
                         System.out.println("INSERT COMMENT YOU ....");
                         String comm=input.nextLine();
-                        st.executeUpdate("INSERT INTO comment(customerID, commet, foodID) " +
-                                "VALUES(" + cusID + ",\"" + comm + "\")+ foodID");
+                        st.executeUpdate("INSERT INTO comment(response, customerID, comment, foodID) " +
+                                "VALUES(\"\"," + cusID + ",\"" + comm + "\","+ foodID + ")");
                     }
                 }
                 if(command.equals("edit comment")){
@@ -783,9 +743,14 @@ public class Main {
                     }
                     if(foundid){
                         System.out.println("Enter the new comment and it shall be commented!");
-                        String newcomm=input.nextLine();
+                        String newcomm="";
+                        String comm=input.next();
+                        while(!comm.equals("!")){
+                            newcomm+=comm + " ";
+                            comm=input.next();
+                        }
                         st.executeUpdate("UPDATE comment SET comment=\"" + newcomm +
-                                "\" WHERE commentID="+comID);
+                                "\" WHERE commentID=" + comID);
                     }
                     else {
                         System.out.println("There are no comments with this id");
@@ -795,7 +760,7 @@ public class Main {
                     showRatings(foodID,st,rs);
                 }
                 if(command.equals("add rating")){
-                    rs=st.executeQuery("SELECT * FROM rating WHERE foodID="+foodID);
+                    rs=st.executeQuery("SELECT * FROM rating WHERE foodID=" + foodID);
                     boolean found=false;
                     while(rs.next()){
                         int customerid=rs.getInt("customerID");
@@ -833,12 +798,69 @@ public class Main {
                         double newRate=input.nextDouble();
                         st.executeUpdate("UPDATE rating SET rate=" + newRate +
                                 " WHERE rateID="+ratID);
+                        System.out.println("New rating= " + newRate + "!");
                     }
                     else {
                         System.out.println("There are no ratings with this id");
                     }
                 }
-            }    //food page
+            }   //customer's food page
+            while (phase == 6) {
+                rs=st.executeQuery("SELECT * FROM food WHERE foodID=" + foodID);
+                while (rs.next()){
+                    String name=rs.getString("name");
+                    System.out.println(name + ":");
+                }
+                command=input.nextLine();
+                if (command.equals("show comments")) {
+                    showComments(foodID,st,rs);
+                }
+                if (command.equals("add response")) {
+                    System.out.println("Enter the comment ID you want to respond to");
+                    int comid=input.nextInt();
+                    String newResponse="";
+                    String Response=input.next();
+                    while(!Response.equals("!")){
+                        newResponse+=Response + " ";
+                        Response=input.next();
+                    }
+                    System.out.println(newResponse);
+                    addResponse(newResponse,comid,st,rs);
+                }
+                if (command.equals("edit response")) {
+                    System.out.println("Enter the comment ID you want to edit the response");
+                    int comid=input.nextInt();
+                    rs = st.executeQuery("SELECT * FROM comment WHERE commentID=" + comid);
+                    String oldResponse="";
+                    while (rs.next()) {
+                        oldResponse=rs.getString("response");
+                    }
+                    if(oldResponse.equals("")){
+                        System.out.println("YOU CAN NOT EDIT A RESPONSE THAT DOES NOT EXIST!!!!!");
+                        System.out.println("TRY ADDING ONE YOU PIECE OF SHIT!!!!!");
+                    }
+                    else {
+                        String newResponse="";
+                        String Response=input.next();
+                        while(!Response.equals("!")){
+                            newResponse+=Response + " ";
+                            Response=input.next();
+                        }
+                        st.executeUpdate("UPDATE comment SET response=\"" + newResponse + "\" WHERE commentID=" + comid);
+                        System.out.println("Response set.");
+                    }
+                }
+                if (command.equals("show ratings")) {
+                    int foodid=input.nextInt();
+                    rs = st.executeQuery("SELECT * FROM rating WHERE foodID=" + foodid);
+                    while (rs.next()){
+                        double rate=rs.getDouble("rate");
+                        System.out.print(rate + "\t");
+                    }
+                    System.out.println();
+                }
+                if (command.equals("return")) phase=2;
+            }   //manager's food page
         }
     }
 }
